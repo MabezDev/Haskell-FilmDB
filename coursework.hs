@@ -5,6 +5,12 @@
 --
 
 --
+-- Imports
+--
+
+import Control.Monad
+
+--
 -- Types
 --
 -- Define Film type here 
@@ -17,8 +23,8 @@ data Film = Film String String Int [String] deriving (Read, Show)
 --
 --
 
-addFilmToDatabase :: [Film] -> Film -> [Film] --I
-addFilmToDatabase database newFilm = (newFilm:database)
+addFilmToDatabase :: [Film] -> String -> String -> Int -> [String] -> [Film] --I
+addFilmToDatabase database  title director year fans = ((Film title director year fans):database)
 
 filmFromString :: String -> Film
 filmFromString line = 
@@ -27,8 +33,8 @@ filmFromString line =
 filmToStringFormatted :: Film -> String
 filmToStringFormatted (Film title director years fansArray) = 
     "[Film]\n" ++ "\tTitle: " ++ title ++ "\n\tDirector: " ++ director 
-    ++ "\n\tRelease year: " ++ (show years) ++ "\n\tFans:" 
-    ++ (show fansArray) ++ "\n" 
+    ++ "\n\tRelease year: " ++ (show years) ++ "\n\tNumber of fans: " 
+    ++ (show (length fansArray)) ++ "\n" 
 
 databaseToStringFormatted :: [Film] -> [String] --II
 databaseToStringFormatted filmsArray = [filmToStringFormatted film | film <- filmsArray]    
@@ -60,6 +66,9 @@ searchFansByDirector ((Film title director year fans):xs) directorToFind listOfF
     if director == directorToFind
         then searchFansByDirector xs directorToFind (listOfFans++[ fan | fan <- fans, not (containsString listOfFans fan)])
         else searchFansByDirector xs directorToFind listOfFans
+        
+
+
         
         
 
@@ -120,16 +129,53 @@ getFans (Film t d y f) = f
 --
 --
 
-readInDB :: String -> IO [Film]
-readInDB filename = do
-    content <- readFile filename
-    let lineArray = lines content
-    return (databaseFromStringArray lineArray)
+printDatabase :: [String] -> IO ()
+printDatabase [] = return ()
+printDatabase (x:xs) = do
+    putStrLn x
+    printDatabase xs
     
     
 printMenu :: IO ()
 printMenu = do
-        putStrLn ("1) Query this")
-        putStrLn ("2) Add that")
+    putStrLn ("1) Add a new film.")
+    putStrLn ("2) List all films.")
+    putStrLn ("3) List all films after a certain year.")
+    putStrLn ("4) List all films you are a fan of.")
+    putStrLn ("5) List all fans of a particular film.")
+    putStrLn ("6) Become a fan of a film.")
+    putStrLn ("7) List all fans of a director.")
+    putStrLn ("8) ??????")
+       
+askName :: IO String
+askName = do
+        putStrLn "What is your name?"
+        getLine
+        
+handleInput :: [Film] -> String -> IO ()
+handleInput filmdb username = do
+    printMenu
+    choice <- getLine
+    when ((read choice :: Int) == 1) $ do
+        putStrLn "Title: "
+        title <- getLine
+        putStrLn "Director: "
+        director <- getLine
+        putStrLn "Year: "
+        year <- getLine
+        handleInput (addFilmToDatabase filmdb title director (read year :: Int) []) username
+    when ((read choice :: Int) == 2) $ do
+        printDatabase (databaseToStringFormatted filmdb)
+        handleInput filmdb username
+    return ()
+    
+    
+    
+        
+main :: IO ()
+main = do
+    username <- askName
+    db <- readFile "films.txt"
+    handleInput (databaseFromStringArray (lines db)) username
     
     
