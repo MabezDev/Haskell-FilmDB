@@ -61,16 +61,18 @@ addFanToFilm ((Film title director year fans):xs) titleToModify fanToAdd =
         else (Film title director year fans) : addFanToFilm xs titleToModify fanToAdd
         
 searchFansByDirector :: [Film] -> String -> [String] -> [String] --VII
-searchFansByDirector [] _ _  = []
+searchFansByDirector [] _ fans  = fans -- not working as it goes up the recusrion stack and returns the empty array we pass in intially - need to find a soluton...
 searchFansByDirector ((Film title director year fans):xs) directorToFind listOfFans =
     if director == directorToFind
-        then searchFansByDirector xs directorToFind (listOfFans++[ fan | fan <- fans, not (containsString listOfFans fan)])
+        then searchFansByDirector xs directorToFind (addFansCheckForDupes fans listOfFans) 
         else searchFansByDirector xs directorToFind listOfFans
         
 
 
         
-        
+-- addFansCheckForDupes -- THIS WORKS something else is wrong in searchFansByDirector
+addFansCheckForDupes :: [String] -> [String] -> [String]
+addFansCheckForDupes fans listOfFans= ([ fan | fan <- fans, not (containsString listOfFans fan)]++listOfFans)        
 
         
 
