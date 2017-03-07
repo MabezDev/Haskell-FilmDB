@@ -44,7 +44,7 @@ databaseFromStringArray linesArray = [ filmFromString line | line <- linesArray]
 
 searchFilmByYearReleased :: [Film] -> Int -> [Film] --III
 searchFilmByYearReleased filmdb yearAfter = 
-    [(Film title director year fans) | (Film title director year fans) <- filmdb, yearAfter > year]
+    [(Film title director year fans) | (Film title director year fans) <- filmdb, yearAfter < year]
     
 searchFilmByFan :: [Film] -> String -> [Film]  --IV
 searchFilmByFan filmdb fan = 
@@ -129,10 +129,10 @@ getFans (Film t d y f) = f
 --
 --
 
-printDatabase :: [String] -> IO ()
+printDatabase :: [Film] -> IO ()
 printDatabase [] = return ()
 printDatabase (x:xs) = do
-    putStrLn x
+    putStrLn (filmToStringFormatted x)
     printDatabase xs
     
     
@@ -146,11 +146,17 @@ printMenu = do
     putStrLn ("6) Become a fan of a film.")
     putStrLn ("7) List all fans of a director.")
     putStrLn ("8) ??????")
+    putStrLn ("9) Exit.")
        
 askName :: IO String
 askName = do
         putStrLn "What is your name?"
         getLine
+        
+getInt :: IO Int
+getInt = do
+    input <- getLine
+    return (read input :: Int)
         
 handleInput :: [Film] -> String -> IO ()
 handleInput filmdb username = do
@@ -162,10 +168,33 @@ handleInput filmdb username = do
         putStrLn "Director: "
         director <- getLine
         putStrLn "Year: "
-        year <- getLine
-        handleInput (addFilmToDatabase filmdb title director (read year :: Int) []) username
+        year <- getInt
+        handleInput (addFilmToDatabase filmdb title director year []) username
     when ((read choice :: Int) == 2) $ do
-        printDatabase (databaseToStringFormatted filmdb)
+        printDatabase filmdb
+        handleInput filmdb username
+    when ((read choice :: Int) == 3) $ do
+        putStrLn "Films after the year: "
+        year <- getInt
+        printDatabase (searchFilmByYearReleased filmdb year)
+        handleInput filmdb username
+    when ((read choice :: Int) == 4) $ do
+        putStrLn ("Listing all films that " ++ username ++ " is a fan of.")
+        printDatabase (searchFilmByFan filmdb username)
+        handleInput filmdb username
+    when ((read choice :: Int) == 5) $ do
+        putStrLn "Film: "
+        title <- getLine
+        putStrLn (show (searchFansByFilm filmdb title))
+        handleInput filmdb username
+    when ((read choice :: Int) == 6) $ do
+        putStrLn "Film: "
+        title <- getLine
+        handleInput (addFanToFilm filmdb title username) username
+    when ((read choice :: Int) == 7) $ do
+        putStrLn "Director: "
+        director <- getLine
+        putStrLn (show (searchFansByDirector filmdb username []))
         handleInput filmdb username
     return ()
     
