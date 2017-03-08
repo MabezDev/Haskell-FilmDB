@@ -1,3 +1,5 @@
+{-# LANGUAGE ParallelListComp #-}
+
 -- 
 -- MATHFUN
 -- Template for the Haskell assignment program (replace this comment)
@@ -9,6 +11,7 @@
 --
 
 import Control.Monad
+import Data.List
 
 --
 -- Types
@@ -48,10 +51,10 @@ searchFilmByYearReleased filmdb yearAfter =
     
 searchFilmByFan :: [Film] -> String -> [Film]  --IV
 searchFilmByFan filmdb fan = 
-    [(Film title director year fans) | (Film title director year fans) <- filmdb, containsString fans fan]
+    [(Film title director year fans) | (Film title director year fans) <- filmdb, fan `elem` fans]
 
 searchFansByFilm :: [Film] -> String -> [String] --V
-searchFansByFilm filmdb title = getFans (findFilmByTitle filmdb title)
+searchFansByFilm filmdb title = concat [ (getFans film) | film <- filmdb, title == (getTitle film)]
 
 addFanToFilm :: [Film] -> String -> String -> [Film] --VI
 addFanToFilm [] _ _ = []
@@ -60,42 +63,16 @@ addFanToFilm ((Film title director year fans):xs) titleToModify fanToAdd =
         then (Film title director year (fanToAdd : fans)) : addFanToFilm xs titleToModify fanToAdd
         else (Film title director year fans) : addFanToFilm xs titleToModify fanToAdd
         
-searchFansByDirector :: [Film] -> String -> [String] -> [String] --VII
-searchFansByDirector [] _ fans  = fans -- not working as it goes up the recusrion stack and returns the empty array we pass in intially - need to find a soluton...
-searchFansByDirector ((Film title director year fans):xs) directorToFind listOfFans =
-    if director == directorToFind
-        then searchFansByDirector xs directorToFind (addFansCheckForDupes fans listOfFans) 
-        else searchFansByDirector xs directorToFind listOfFans
-        
 
+searchFansByDirector :: [Film] -> String -> [String] --VII
+searchFansByDirector filmdb directorToFind = nub (concat [ (getFans film) | film <- filmdb, directorToFind == (getDirector film)])       
 
-        
--- addFansCheckForDupes -- THIS WORKS something else is wrong in searchFansByDirector
-addFansCheckForDupes :: [String] -> [String] -> [String]
-addFansCheckForDupes fans listOfFans= ([ fan | fan <- fans, not (containsString listOfFans fan)]++listOfFans)        
-
-        
-
-
- 
 
 --
 --
 -- Helper functions
 --
 --
-
-findFilmByTitle :: [Film] -> String -> Film
-findFilmByTitle [] _ = (Film "" "" 0 [])
-findFilmByTitle ((Film title director year fans):xs) titleToFind = 
-    if title == titleToFind 
-       then (Film title director year fans) 
-       else  findFilmByTitle xs titleToFind
-
-containsString :: [String] -> String -> Bool
-containsString [] _ = False
-containsString (x:xs) target = if x == target then True else containsString xs target
-
 
 getTitle :: Film -> String
 getTitle (Film t d y f) = t
@@ -196,7 +173,7 @@ handleInput filmdb username = do
     when ((read choice :: Int) == 7) $ do
         putStrLn "Director: "
         director <- getLine
-        putStrLn (show (searchFansByDirector filmdb username []))
+        putStrLn (show (searchFansByDirector filmdb director))
         handleInput filmdb username
     return ()
     
