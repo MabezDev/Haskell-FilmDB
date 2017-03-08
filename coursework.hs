@@ -65,11 +65,21 @@ searchFansByFilm filmdb title = concat [ (getFans film) | film <- filmdb, title 
 --        then (Film title director year (fanToAdd : fans)) : addFanToFilm xs titleToModify fanToAdd
 --        else (Film title director year fans) : addFanToFilm xs titleToModify fanToAdd
 
-addFanToFilm :: [Film] -> String -> String -> [Film]
-addFanToFilm (x:xs) title fan
-    | (length (x:xs)) == 0  = []
-    | (getTitle x) == title = (Film title (getDirector x) (getYear x) (fan:(getFans x))) : (addFanToFilm xs title fan)
-    | otherwise             = x : (addFanToFilm xs title fan)
+--addFanToFilm :: [Film] -> String -> String -> [Film] --TODO fix bug with this where if a fan is only following one film it throws a Non Exaustive pattern excetion
+--addFanToFilm (x:xs) title fan
+--    | (length (x:xs)) < 1  = []
+--    | (getTitle x) == title = (Film title (getDirector x) (getYear x) (fan:(getFans x))) : (addFanToFilm xs title fan)
+--    | otherwise             = x : (addFanToFilm xs title fan)
+
+addFanToFilm :: [Film] -> String -> String -> [Film] --TODO fix bug with this where if a fan is only following one film it throws a Non Exaustive pattern excetion
+addFanToFilm filmdb title fan
+    | null filmdb  = []
+    | (getTitle film) == title = (Film title (getDirector film) (getYear film) (fan:(getFans film))) : (addFanToFilm rest title fan)
+    | otherwise             = film : (addFanToFilm rest title fan)
+    where
+        film = head filmdb
+        rest = tail filmdb
+        
         
 
 searchFansByDirector :: [Film] -> String -> [String] --VII
@@ -166,52 +176,57 @@ handleInput filmdb username = do
     choice <- getInt
     putStrLn ""
     
-    when (choice == 1) $ do
-        putStrLn "Title: "
-        title <- getLine
-        putStrLn "Director: "
-        director <- getLine
-        putStrLn "Year: "
-        year <- getInt
-        handleInput (addFilmToDatabase filmdb title director year []) username
-    when (choice == 2) $ do
-        printDatabase filmdb
-        handleInput filmdb username
-    when (choice == 3) $ do
-        putStrLn "Films after the year: "
-        year <- getInt
-        printDatabase (searchFilmByYearReleased filmdb year)
-        handleInput filmdb username
-    when (choice == 4) $ do
-        putStrLn ("Listing all films that " ++ username ++ " is a fan of.")
-        printDatabase (searchFilmByFan filmdb username)
-        handleInput filmdb username
-    when (choice == 5) $ do
-        putStrLn "Film: "
-        title <- getLine
-        putStrLn (show (searchFansByFilm filmdb title))
-        handleInput filmdb username
-    when (choice == 6) $ do
-        putStrLn "Film: "
-        title <- getLine
-        handleInput (addFanToFilm filmdb title username) username
-    when (choice == 7) $ do
-        putStrLn "Director: "
-        director <- getLine
-        putStrLn (show (searchFansByDirector filmdb director))
-        handleInput filmdb username
-    when (choice == 8) $ do
-        putStrLn ("Listing all directors and the number of films " ++ username ++ " is a fan of. In the format ('Director',number).")
-        putStrLn (show (searchDirectorsByFan filmdb username))
-        handleInput filmdb username
-    when (choice == 9) $ do
-        return ()
-    when (choice == -1) $ do
-        putStr "Enter a valid Integer!"
-        putStrLn ""
-        handleInput filmdb username
-    putStrLn "Not a valid option enter an integer between 1 and 9."
-    handleInput filmdb username
+    case choice of
+        1 -> do
+            putStrLn "Title: "
+            title <- getLine
+            putStrLn "Director: "
+            director <- getLine
+            putStrLn "Year: "
+            year <- getInt
+            handleInput (addFilmToDatabase filmdb title director year []) username
+        2 -> do
+            printDatabase filmdb
+            handleInput filmdb username
+        3 -> do
+            putStrLn "Films after the year: "
+            year <- getInt
+            printDatabase (searchFilmByYearReleased filmdb year)
+            handleInput filmdb username
+        4 -> do
+            putStrLn ("Listing all films that " ++ username ++ " is a fan of.")
+            printDatabase (searchFilmByFan filmdb username)
+            handleInput filmdb username
+        5 -> do
+            putStrLn "Film: "
+            title <- getLine
+            putStrLn (show (searchFansByFilm filmdb title))
+            handleInput filmdb username
+        6 -> do
+            putStrLn "Film: "
+            title <- getLine
+            handleInput (addFanToFilm filmdb title username) username
+        7 -> do
+            putStrLn "Director: "
+            director <- getLine
+            putStrLn (show (searchFansByDirector filmdb director))
+            handleInput filmdb username
+        8 -> do
+            putStrLn ("Listing all directors and the number of films " ++ username ++ " is a fan of. In the format ('Director',number).")
+            putStrLn (show (searchDirectorsByFan filmdb username))
+            handleInput filmdb username
+        9 -> do
+            putStrLn ("Exiting...")
+            return ()
+        -1 -> do
+            putStr "Enter a valid Integer!"
+            putStrLn ""
+            handleInput filmdb username
+        _ -> do
+            putStrLn "Not a valid option enter an integer between 1 and 9."
+            handleInput filmdb username
+        
+    
     
     
     
