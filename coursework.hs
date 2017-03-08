@@ -12,6 +12,7 @@
 
 import Control.Monad
 import Data.List
+import Data.Map (fromListWith, toList)
 
 --
 -- Types
@@ -65,14 +66,21 @@ addFanToFilm ((Film title director year fans):xs) titleToModify fanToAdd =
         
 
 searchFansByDirector :: [Film] -> String -> [String] --VII
-searchFansByDirector filmdb directorToFind = nub (concat [ (getFans film) | film <- filmdb, directorToFind == (getDirector film)])       
+searchFansByDirector filmdb directorToFind = nub (concat [ (getFans film) | film <- filmdb, directorToFind == (getDirector film)])
 
+
+searchDirectorsByFan :: [Film] -> String -> [(String,Int)] --VIII   
+searchDirectorsByFan filmdb fan = frequency [ (getDirector film) | film <- (searchFilmByFan filmdb fan)]
 
 --
 --
 -- Helper functions
 --
 --
+
+-- fromList combines a list tuples to create a map, toList creates List from a map
+frequency :: (Ord a) => [a] -> [(a, Int)]
+frequency xs = toList (fromListWith (+) [(x, 1) | x <- xs]) -- mapping first tuple to count
 
 getTitle :: Film -> String
 getTitle (Film t d y f) = t
@@ -174,6 +182,10 @@ handleInput filmdb username = do
         putStrLn "Director: "
         director <- getLine
         putStrLn (show (searchFansByDirector filmdb director))
+        handleInput filmdb username
+    when ((read choice :: Int) == 8) $ do
+        putStrLn ("Listing all directors and the number of films " ++ username ++ " is a fan of. In the format ('Director',number).")
+        putStrLn (show (searchDirectorsByFan filmdb username))
         handleInput filmdb username
     return ()
     
