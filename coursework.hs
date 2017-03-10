@@ -1,5 +1,3 @@
-{-# LANGUAGE ParallelListComp #-}
-
 -- 
 -- MATHFUN
 -- Template for the Haskell assignment program (replace this comment)
@@ -44,9 +42,6 @@ filmToStringFormatted (Film title director years fansArray) =
 databaseToStringFormatted :: [Film] -> [String] --II
 databaseToStringFormatted filmsArray = [filmToStringFormatted film | film <- filmsArray]    
 
-databaseFromStringArray :: [String] -> [Film]
-databaseFromStringArray linesArray = [ filmFromString line | line <- linesArray]
-
 searchFilmByYearReleased :: [Film] -> Int -> [Film] --III
 searchFilmByYearReleased filmdb yearAfter = 
     [(Film title director year fans) | (Film title director year fans) <- filmdb, yearAfter < year]
@@ -71,11 +66,11 @@ searchFansByFilm filmdb title = concat [ (getFans film) | film <- filmdb, title 
 --    | (getTitle x) == title = (Film title (getDirector x) (getYear x) (fan:(getFans x))) : (addFanToFilm xs title fan)
 --    | otherwise             = x : (addFanToFilm xs title fan)
 
-addFanToFilm :: [Film] -> String -> String -> [Film] --TODO fix bug with this where if a fan is only following one film it throws a Non Exaustive pattern excetion
+addFanToFilm :: [Film] -> String -> String -> [Film]
 addFanToFilm filmdb title fan
     | null filmdb  = []
     | (getTitle film) == title = (Film title (getDirector film) (getYear film) (fan:(getFans film))) : (addFanToFilm rest title fan)
-    | otherwise             = film : (addFanToFilm rest title fan)
+    | otherwise                = film : (addFanToFilm rest title fan)
     where
         film = head filmdb
         rest = tail filmdb
@@ -133,11 +128,11 @@ getFans (Film t d y f) = f
 --
 --
 
-printDatabase :: [Film] -> IO ()
-printDatabase [] = return ()
-printDatabase (x:xs) = do
+printFilmArray :: [Film] -> IO ()
+printFilmArray [] = return ()
+printFilmArray (x:xs) = do
     putStrLn (filmToStringFormatted x)
-    printDatabase xs
+    printFilmArray xs
     
     
 printMenu :: IO ()
@@ -186,16 +181,16 @@ handleInput filmdb username = do
             year <- getInt
             handleInput (addFilmToDatabase filmdb title director year []) username
         2 -> do
-            printDatabase filmdb
+            printFilmArray filmdb
             handleInput filmdb username
         3 -> do
             putStrLn "Films after the year: "
             year <- getInt
-            printDatabase (searchFilmByYearReleased filmdb year)
+            printFilmArray (searchFilmByYearReleased filmdb year)
             handleInput filmdb username
         4 -> do
             putStrLn ("Listing all films that " ++ username ++ " is a fan of.")
-            printDatabase (searchFilmByFan filmdb username)
+            printFilmArray (searchFilmByFan filmdb username)
             handleInput filmdb username
         5 -> do
             putStrLn "Film: "
@@ -216,6 +211,9 @@ handleInput filmdb username = do
             putStrLn (show (searchDirectorsByFan filmdb username))
             handleInput filmdb username
         9 -> do
+            putStrLn "Saving database to 'films.txt'"
+            -- save to file here
+            -- saveDatabase filmdb "films.txt"
             putStrLn ("Exiting...")
             return ()
         -1 -> do
@@ -227,7 +225,9 @@ handleInput filmdb username = do
             handleInput filmdb username
         
     
-    
+saveDatabase :: [Film] -> String -> IO ()
+saveDatabase filmdb filename = do
+        writeFile filename (show filmdb)
     
     
         
@@ -235,6 +235,6 @@ main :: IO ()
 main = do
     username <- askName
     db <- readFile "films.txt"
-    handleInput (databaseFromStringArray (lines db)) username
+    handleInput (read db :: [Film]) username
     
     
