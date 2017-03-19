@@ -7,10 +7,7 @@
 -- Imports
 --
 
-import Control.Monad
 import Data.List
-import Data.Map (fromListWith, toList)
-import Data.Char
 
 --
 -- Types
@@ -21,7 +18,31 @@ data Film = Film String String Int [String] deriving (Read, Show)
 
 -- Test Data --
 testDatabase :: [Film]
-testDatabase = [Film "Blade Runner" "Ridley Scott" 1982 ["Zoe","Heidi","Jo","Kate","Emma","Liz","Sam","Olga","Tim"],Film "The Fly" "David Cronenberg" 1986 ["Garry","Dave","Zoe","Kevin","Emma"],Film "Body Of Lies" "Ridley Scott" 2008 ["Bill","Olga","Tim","Zoe","Paula"],Film "Avatar" "James Cameron" 2009 ["Dave","Amy","Liz"],Film "Titanic" "James Cameron" 1997 ["Zoe","Emma","Paula","Liz","Olga","Dave"],Film "The Departed" "Martin Scorsese" 2006 ["Wally","Liz","Kevin","Tim","Emma"],Film "Aliens" "Ridley Scott" 1986 ["Dave","Garry","Liz","Sam","Wally","Kate","Zoe"],Film "Kingdom Of Heaven" "Ridley Scott" 2005 ["Jo","Wally","Emma"],Film "Prometheus" "Ridley Scott" 2012 ["Kevin","Tim","Emma","Jo","Liz"],Film "E.T. The Extra-Terrestrial" "Steven Spielberg" 1982 ["Dave","Amy","Garry","Ian","Neal"],Film "Bridge of Spies" "Steven Spielberg" 2015 ["Wally","Sam","Dave","Neal"],Film "Jaws" "Steven Spielberg" 1975 ["Dave","Jo","Zoe","Wally","Emma","Kate"],Film "The Martian" "Ridley Scott" 2015 ["Wally","Sam","Dave","Jo","Jenny","Kate","Emma","Olga"],Film "The BFG" "Steven Spielberg" 2016 ["Sam","Wally","Dave","Jo","Kate"],Film "The Shawshank Redemption" "Frank Darabont" 1994 ["Dave","Amy","Bill","Garry","Ian","Neal","Kate","Jenny","Zoe"],Film "Gladiator" "Ridley Scott" 2000 ["Olga","Neal","Kate","Heidi","Bill","Sam","Zoe"],Film "The Green Mile" "Frank Darabont" 1999 ["Kevin","Tim","Emma","Heidi"],Film "True Lies" "James Cameron" 1994 ["Sam","Dave"],Film "Super 8" "J J Abrams" 2011 ["Kevin","Tim","Emma","Olga","Heidi"],Film "Minority Report" "Steven Spielberg" 2002 ["Kevin","Kate","Tim","Emma","Olga","Jenny","Zoe"],Film "War Horse" "Steven Spielberg" 2011 ["Garry","Bill","Olga","Jo","Wally","Emma","Tim","Kate","Zoe"],Film "Silence" "Martin Scorsese" 2016 ["Wally","Emma","Tim","Heidi","Bill","Olga","Jo"],Film "The Terminal" "Steven Spielberg" 2004 ["Kate","Dave","Jo","Wally","Emma"],Film "Star Wars: The Force Awakens" "J J Abrams" 2015 ["Emma","Wally","Zoe","Kate","Bill","Dave","Liz","Jo"],Film "Hugo" "Martin Scorsese" 2011 ["Wally","Sam"]]
+testDatabase = [Film "Blade Runner" "Ridley Scott" 1982 ["Zoe","Heidi","Jo","Kate","Emma","Liz","Sam","Olga","Tim"],
+                Film "The Fly" "David Cronenberg" 1986 ["Garry","Dave","Zoe","Kevin","Emma"],
+                Film "Body Of Lies" "Ridley Scott" 2008 ["Bill","Olga","Tim","Zoe","Paula"],
+                Film "Avatar" "James Cameron" 2009 ["Dave","Amy","Liz"],
+                Film "Titanic" "James Cameron" 1997 ["Zoe","Emma","Paula","Liz","Olga","Dave"],
+                Film "The Departed" "Martin Scorsese" 2006 ["Wally","Liz","Kevin","Tim","Emma"],
+                Film "Aliens" "Ridley Scott" 1986 ["Dave","Garry","Liz","Sam","Wally","Kate","Zoe"],
+                Film "Kingdom Of Heaven" "Ridley Scott" 2005 ["Jo","Wally","Emma"],
+                Film "Prometheus" "Ridley Scott" 2012 ["Kevin","Tim","Emma","Jo","Liz"],
+                Film "E.T. The Extra-Terrestrial" "Steven Spielberg" 1982 ["Dave","Amy","Garry","Ian","Neal"],
+                Film "Bridge of Spies" "Steven Spielberg" 2015 ["Wally","Sam","Dave","Neal"],
+                Film "Jaws" "Steven Spielberg" 1975 ["Dave","Jo","Zoe","Wally","Emma","Kate"],
+                Film "The Martian" "Ridley Scott" 2015 ["Wally","Sam","Dave","Jo","Jenny","Kate","Emma","Olga"],
+                Film "The BFG" "Steven Spielberg" 2016 ["Sam","Wally","Dave","Jo","Kate"],
+                Film "The Shawshank Redemption" "Frank Darabont" 1994 ["Dave","Amy","Bill","Garry","Ian","Neal","Kate","Jenny","Zoe"],
+                Film "Gladiator" "Ridley Scott" 2000 ["Olga","Neal","Kate","Heidi","Bill","Sam","Zoe"],
+                Film "The Green Mile" "Frank Darabont" 1999 ["Kevin","Tim","Emma","Heidi"],
+                Film "True Lies" "James Cameron" 1994 ["Sam","Dave"],
+                Film "Super 8" "J J Abrams" 2011 ["Kevin","Tim","Emma","Olga","Heidi"],
+                Film "Minority Report" "Steven Spielberg" 2002 ["Kevin","Kate","Tim","Emma","Olga","Jenny","Zoe"],
+                Film "War Horse" "Steven Spielberg" 2011 ["Garry","Bill","Olga","Jo","Wally","Emma","Tim","Kate","Zoe"],
+                Film "Silence" "Martin Scorsese" 2016 ["Wally","Emma","Tim","Heidi","Bill","Olga","Jo"],
+                Film "The Terminal" "Steven Spielberg" 2004 ["Kate","Dave","Jo","Wally","Emma"],
+                Film "Star Wars: The Force Awakens" "J J Abrams" 2015 ["Emma","Wally","Zoe","Kate","Bill","Dave","Liz","Jo"],
+                Film "Hugo" "Martin Scorsese" 2011 ["Wally","Sam"]]
 
 -- 
 --
@@ -81,30 +102,44 @@ frequency :: [String] -> [(String, Int)]
 frequency listOfDirectors = nub [  (director, instances listOfDirectors director) | director <- listOfDirectors]
 
 instances:: [String] -> String -> Int
-instances [] director = 0
+instances [] _ = 0
 instances (y:ys) director 
     | director == y = 1+(instances ys director)
     | otherwise = instances ys director
 
 
 getTitle :: Film -> String
-getTitle (Film t d y f) = t
+getTitle (Film t _ _ _) = t
 
 getDirector :: Film -> String
-getDirector (Film t d y f) = d
+getDirector (Film _ d _ _) = d
 
 getYear :: Film -> Int
-getYear (Film t d y f) = y
+getYear (Film _ _ y _) = y
 
 getFans :: Film -> [String]
-getFans (Film t d y f) = f
+getFans (Film _ _ _ f) = f
+
+-- film exists
+filmExists :: [Film] -> String -> Bool -- FilmDB and film title
+filmExists [] _ = False
+filmExists (x:xs) title
+    | getTitle x == title = True || filmExists [] title
+    | otherwise           = False || filmExists xs title
+
+fanExists :: [Film] -> String -> String -> Bool -- FilmDB, film title and Fan name
+fanExists [] _ _ = False
+fanExists (x:xs) title fan
+    | getTitle x == title = (fan `elem` getFans x) || fanExists [] title fan
+    | otherwise           = False || fanExists xs title fan
+
 
 
 -- Demo function to test basic functionality (without persistence - i.e. 
 -- testDatabase doesn't change and nothing is saved/loaded to/from file).
 
 demo :: Int -> IO ()
-demo 1  = printFilmArray (addFilmToDatabase testDatabase "Alien: Covenant" "Ridley Scott" 2017 [])
+demo 1  = printFilmArray $ addFilmToDatabase testDatabase "Alien: Covenant" "Ridley Scott" 2017 []
 demo 2  = printFilmArray testDatabase
 demo 3  = printFilmArray (searchFilmByYearReleased testDatabase 2008)
 demo 4  = printFilmArray (searchFilmByFan testDatabase "Liz")
@@ -153,6 +188,7 @@ getInt = do
         then return (read input :: Int)
         else return (-1)
 
+isInt :: String -> Bool
 isInt s = case reads s :: [(Integer, String)] of
   [(_, "")] -> True
   _         -> False       
@@ -167,19 +203,34 @@ handleInput filmdb username = do
         1 -> do
             putStrLn "Title: "
             title <- getLine
+            if filmExists filmdb title
+                then do
+                    putStrLn "A film already exists with this title!"
+                    handleInput filmdb username
+                else 
+                    return () -- not the normal return, the program just carries on
             putStrLn "Director: "
             director <- getLine
             putStrLn "Year: "
             year <- getInt
-            handleInput (addFilmToDatabase filmdb title director year []) username
+            if year /= -1 && year > 0
+                then handleInput (addFilmToDatabase filmdb title director year []) username
+                else do
+                    putStrLn "Not a valid year!" 
+                    handleInput filmdb username
         2 -> do
             printFilmArray filmdb
             handleInput filmdb username
         3 -> do
             putStrLn "Films after the year: "
             year <- getInt
-            printFilmArray (searchFilmByYearReleased filmdb year)
-            handleInput filmdb username
+            if year /= -1 && year > 0
+                then do
+                    printFilmArray (searchFilmByYearReleased filmdb year)
+                    handleInput filmdb username
+                else do
+                    putStrLn "Not a valid year!" 
+                    handleInput filmdb username
         4 -> do
             putStrLn ("Listing all films that " ++ username ++ " is a fan of.")
             printFilmArray (searchFilmByFan filmdb username)
@@ -192,7 +243,12 @@ handleInput filmdb username = do
         6 -> do
             putStrLn "Film: "
             title <- getLine
-            handleInput (addFanToFilm filmdb title username) username
+            if fanExists filmdb title username
+                then do
+                    putStrLn ("You are already a fan of "++title)
+                    handleInput filmdb username
+                else handleInput (addFanToFilm filmdb title username) username
+            
         7 -> do
             putStrLn "Director: "
             director <- getLine
@@ -204,8 +260,8 @@ handleInput filmdb username = do
             handleInput filmdb username
         9 -> do
             putStrLn "Saving database to 'films.txt'"
-            saveDatabase filmdb "films.txt"  -- save to file here
-            putStrLn ("Exiting...")
+            --saveDatabase filmdb "films.txt"  -- save to file here
+            --putStrLn ("Exiting...")
             return ()
         -1 -> do
             putStr "Enter a valid Integer!"
@@ -217,8 +273,7 @@ handleInput filmdb username = do
         
     
 saveDatabase :: [Film] -> String -> IO ()
-saveDatabase filmdb filename = do
-        writeFile filename (show filmdb)
+saveDatabase filmdb filename = writeFile filename (show filmdb)
     
     
         
