@@ -1,6 +1,5 @@
 -- 
 -- MATHFUN
--- Template for the Haskell assignment program (replace this comment)
 -- UP745497
 --
 
@@ -20,6 +19,10 @@ import Data.Char
 
 data Film = Film String String Int [String] deriving (Read, Show)
 
+-- Test Data --
+testDatabase :: [Film]
+testDatabase = [Film "Blade Runner" "Ridley Scott" 1982 ["Zoe","Heidi","Jo","Kate","Emma","Liz","Sam","Olga","Tim"],Film "The Fly" "David Cronenberg" 1986 ["Garry","Dave","Zoe","Kevin","Emma"],Film "Body Of Lies" "Ridley Scott" 2008 ["Bill","Olga","Tim","Zoe","Paula"],Film "Avatar" "James Cameron" 2009 ["Dave","Amy","Liz"],Film "Titanic" "James Cameron" 1997 ["Zoe","Emma","Paula","Liz","Olga","Dave"],Film "The Departed" "Martin Scorsese" 2006 ["Wally","Liz","Kevin","Tim","Emma"],Film "Aliens" "Ridley Scott" 1986 ["Dave","Garry","Liz","Sam","Wally","Kate","Zoe"],Film "Kingdom Of Heaven" "Ridley Scott" 2005 ["Jo","Wally","Emma"],Film "Prometheus" "Ridley Scott" 2012 ["Kevin","Tim","Emma","Jo","Liz"],Film "E.T. The Extra-Terrestrial" "Steven Spielberg" 1982 ["Dave","Amy","Garry","Ian","Neal"],Film "Bridge of Spies" "Steven Spielberg" 2015 ["Wally","Sam","Dave","Neal"],Film "Jaws" "Steven Spielberg" 1975 ["Dave","Jo","Zoe","Wally","Emma","Kate"],Film "The Martian" "Ridley Scott" 2015 ["Wally","Sam","Dave","Jo","Jenny","Kate","Emma","Olga"],Film "The BFG" "Steven Spielberg" 2016 ["Sam","Wally","Dave","Jo","Kate"],Film "The Shawshank Redemption" "Frank Darabont" 1994 ["Dave","Amy","Bill","Garry","Ian","Neal","Kate","Jenny","Zoe"],Film "Gladiator" "Ridley Scott" 2000 ["Olga","Neal","Kate","Heidi","Bill","Sam","Zoe"],Film "The Green Mile" "Frank Darabont" 1999 ["Kevin","Tim","Emma","Heidi"],Film "True Lies" "James Cameron" 1994 ["Sam","Dave"],Film "Super 8" "J J Abrams" 2011 ["Kevin","Tim","Emma","Olga","Heidi"],Film "Minority Report" "Steven Spielberg" 2002 ["Kevin","Kate","Tim","Emma","Olga","Jenny","Zoe"],Film "War Horse" "Steven Spielberg" 2011 ["Garry","Bill","Olga","Jo","Wally","Emma","Tim","Kate","Zoe"],Film "Silence" "Martin Scorsese" 2016 ["Wally","Emma","Tim","Heidi","Bill","Olga","Jo"],Film "The Terminal" "Steven Spielberg" 2004 ["Kate","Dave","Jo","Wally","Emma"],Film "Star Wars: The Force Awakens" "J J Abrams" 2015 ["Emma","Wally","Zoe","Kate","Bill","Dave","Liz","Jo"],Film "Hugo" "Martin Scorsese" 2011 ["Wally","Sam"]]
+
 -- 
 --
 --  Your functional code goes here
@@ -28,10 +31,6 @@ data Film = Film String String Int [String] deriving (Read, Show)
 
 addFilmToDatabase :: [Film] -> String -> String -> Int -> [String] -> [Film] --I
 addFilmToDatabase database  title director year fans = ((Film title director year fans):database)
-
-filmFromString :: String -> Film
-filmFromString line = 
-    read line :: Film -- cast to Film just incase
     
 filmToStringFormatted :: Film -> String
 filmToStringFormatted (Film title director years fansArray) = 
@@ -53,18 +52,6 @@ searchFilmByFan filmdb fan =
 searchFansByFilm :: [Film] -> String -> [String] --V
 searchFansByFilm filmdb title = concat [ (getFans film) | film <- filmdb, title == (getTitle film)]
 
---addFanToFilm :: [Film] -> String -> String -> [Film] --VI
---addFanToFilm [] _ _ = []
---addFanToFilm ((Film title director year fans):xs) titleToModify fanToAdd = 
---    if title == titleToModify
---        then (Film title director year (fanToAdd : fans)) : addFanToFilm xs titleToModify fanToAdd
---        else (Film title director year fans) : addFanToFilm xs titleToModify fanToAdd
-
---addFanToFilm :: [Film] -> String -> String -> [Film] --TODO fix bug with this where if a fan is only following one film it throws a Non Exaustive pattern excetion
---addFanToFilm (x:xs) title fan
---    | (length (x:xs)) < 1  = []
---    | (getTitle x) == title = (Film title (getDirector x) (getYear x) (fan:(getFans x))) : (addFanToFilm xs title fan)
---    | otherwise             = x : (addFanToFilm xs title fan)
 
 addFanToFilm :: [Film] -> String -> String -> [Film]
 addFanToFilm filmdb title fan
@@ -90,9 +77,15 @@ searchDirectorsByFan filmdb fan = frequency [ (getDirector film) | film <- (sear
 --
 --
 
--- fromList combines a list tuples to create a map, toList creates List from a map
-frequency :: (Ord a) => [a] -> [(a, Int)]
-frequency xs = toList (fromListWith (+) [(x, 1) | x <- xs]) -- mapping first tuple to count
+frequency :: [String] -> [(String, Int)]
+frequency listOfDirectors = nub [  (director, instances listOfDirectors director) | director <- listOfDirectors]
+
+instances:: [String] -> String -> Int
+instances [] director = 0
+instances (y:ys) director 
+    | director == y = 1+(instances ys director)
+    | otherwise = instances ys director
+
 
 getTitle :: Film -> String
 getTitle (Film t d y f) = t
@@ -110,17 +103,16 @@ getFans (Film t d y f) = f
 -- Demo function to test basic functionality (without persistence - i.e. 
 -- testDatabase doesn't change and nothing is saved/loaded to/from file).
 
---demo :: Int -> IO ()
---demo 1  = putStrLn all films after adding 2017 film "Alien: Covenant"
---                   by "Ridley Scott" to testDatabase
---demo 2  = putStrLn (filmsAsString testDatabase)
---demo 3  = putStrLn all films released after 2008
---demo 4  = putStrLn all films that "Liz" is a fan of
---demo 5  = putStrLn all fans of "Jaws"
---demo 6  = putStrLn all films after "Liz" says she becomes fan of "The Fly"
---demo 66 = putStrLn all films after "Liz" says she becomes fan of "Avatar"
---demo 7 =  putStrLn all fans of films directed by "James Cameron"
---demo 8  = putStrLn all directors & no. of their films that "Liz" is a fan of
+demo :: Int -> IO ()
+demo 1  = printFilmArray (addFilmToDatabase testDatabase "Alien: Covenant" "Ridley Scott" 2017 [])
+demo 2  = printFilmArray testDatabase
+demo 3  = printFilmArray (searchFilmByYearReleased testDatabase 2008)
+demo 4  = printFilmArray (searchFilmByFan testDatabase "Liz")
+demo 5  = putStrLn (show (searchFansByFilm testDatabase "Jaws"))
+demo 6  = printFilmArray (addFanToFilm testDatabase "The Fly" "Liz")-- putStrLn all films after "Liz" says she becomes fan of "The Fly"
+demo 66  = printFilmArray (addFanToFilm testDatabase "Avatar" "Liz")--demo 66 = putStrLn all films after "Liz" says she becomes fan of "Avatar"
+demo 7 =  putStrLn (show (searchFansByDirector testDatabase "James Cameron")) --putStrLn all fans of films directed by "James Cameron"
+demo 8  = putStrLn (show (searchDirectorsByFan testDatabase "Liz")) --putStrLn all directors & no. of their films that "Liz" is a fan of
 
 --
 --
@@ -212,8 +204,7 @@ handleInput filmdb username = do
             handleInput filmdb username
         9 -> do
             putStrLn "Saving database to 'films.txt'"
-            -- save to file here
-            -- saveDatabase filmdb "films.txt"
+            saveDatabase filmdb "films.txt"  -- save to file here
             putStrLn ("Exiting...")
             return ()
         -1 -> do
@@ -233,8 +224,14 @@ saveDatabase filmdb filename = do
         
 main :: IO ()
 main = do
+    dbRaw <- readFile "films.txt"
+    let db = (read dbRaw :: [Film])
+    putStrLn ""
+    printFilmArray db
+    putStrLn ""
     username <- askName
-    db <- readFile "films.txt"
-    handleInput (read db :: [Film]) username
+    putStrLn ""
+    putStrLn ("Welcome " ++ username)
+    handleInput db username
     
     
