@@ -46,7 +46,7 @@ testDatabase = [Film "Blade Runner" "Ridley Scott" 1982 ["Zoe","Heidi","Jo","Kat
 
 -- 
 --
---  Your functional code goes here
+--  Pure functional code
 --
 --
 
@@ -75,8 +75,8 @@ searchFansByFilm filmdb title = concat [ (getFans film) | film <- filmdb, title 
 
 
 addFanToFilm :: [Film] -> String -> String -> [Film]
+addFanToFilm [] _ _ = []
 addFanToFilm filmdb title fan
-    | null filmdb  = []
     | (getTitle film) == title = (Film title (getDirector film) (getYear film) (fan:(getFans film))) : (addFanToFilm rest title fan)
     | otherwise                = film : (addFanToFilm rest title fan)
     where
@@ -104,7 +104,7 @@ frequency listOfDirectors = nub [  (director, instances listOfDirectors director
 instances:: [String] -> String -> Int
 instances [] _ = 0
 instances (y:ys) director 
-    | director == y = 1+(instances ys director)
+    | director == y = 1 + (instances ys director)
     | otherwise = instances ys director
 
 
@@ -120,7 +120,7 @@ getYear (Film _ _ y _) = y
 getFans :: Film -> [String]
 getFans (Film _ _ _ f) = f
 
--- film exists
+
 filmExists :: [Film] -> String -> Bool -- FilmDB and film title
 filmExists [] _ = False
 filmExists (x:xs) title
@@ -208,7 +208,7 @@ handleInput filmdb username = do
                     putStrLn "A film already exists with this title!"
                     handleInput filmdb username
                 else 
-                    return () -- not the normal return, the program just carries on
+                    return () -- not a standard programming return, the program just carries on
             putStrLn "Director: "
             director <- getLine
             putStrLn "Year: "
@@ -260,8 +260,8 @@ handleInput filmdb username = do
             handleInput filmdb username
         9 -> do
             putStrLn "Saving database to 'films.txt'"
-            --saveDatabase filmdb "films.txt"  -- save to file here
-            --putStrLn ("Exiting...")
+            saveDatabase filmdb "films.txt"  -- save to file here
+            putStrLn ("Exiting...")
             return ()
         -1 -> do
             putStr "Enter a valid Integer!"
@@ -273,7 +273,7 @@ handleInput filmdb username = do
         
     
 saveDatabase :: [Film] -> String -> IO ()
-saveDatabase filmdb filename = writeFile filename (show filmdb)
+saveDatabase filmdb filename =  writeFile filename (show filmdb)
     
     
         
